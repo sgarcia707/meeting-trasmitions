@@ -3,10 +3,11 @@ var id
 
 angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'loadingMsgDirective']).controller('AppCtrl', function($scope, $http, $mdDialog, $interval) {
 
-  $scope.view = new Object();
+    $scope.view = new Object();
     $scope.view.date = new Date();
-    $scope.view.init_time = "";
-    $scope.view.finish_time = "";
+    //$scope.view.init_time = "";
+    //$scope.view.finish_time = "";
+    $scope.view.title = "Reunion";
     $scope.view.hideDataTransmision = true;
     $scope.view.btnCreateDisabled = false;
 
@@ -40,9 +41,10 @@ angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'load
         var month = $scope.view.date.getUTCMonth() + 1; 
         var day = $scope.view.date.getUTCDate();
         var year = $scope.view.date.getUTCFullYear();
-        name = "Reunion_" + year + "-" + ((month < 10)? "0" + month : month) + "-" + ((day < 10)? "0" + day : day)
-        init_time = year + "-" + ((month < 10)? "0" + month : month) + "-" + ((day < 10)? "0" + day : day) + "T" + $scope.view.init_time + ":00.000Z"
-        finish_time = year + "-" + ((month < 10)? "0" + month : month) + "-" + ((day < 10)? "0" + day : day) + "T" + $scope.view.finish_time + ":00.000Z"
+        var title = $scope.view.title.replace(/ /g,"_");
+        name = title + "_"  +  ((day < 10)? "0" + day : day) + "-" + ((month < 10)? "0" + month : month) +  "-" + year
+        init_time = year + "-" + ((month < 10)? "0" + month : month) + "-" + ((day < 10)? "0" + day : day) + "T22:00:00.000Z"
+        finish_time = year + "-" + ((month < 10)? "0" + month : month) + "-" + ((day < 10)? "0" + day : day) + "T23:00:00.000Z"
 
         $http({
           method: 'GET',

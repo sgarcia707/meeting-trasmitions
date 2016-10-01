@@ -35,7 +35,7 @@ if(!$client->getAccessToken()){
 <div ng-controller="AppCtrl" ng-cloak>
 <md-toolbar class="md-info">
     <div class="md-toolbar-tools">
-      <h2 class="md-flex">Datos de la Reunion</h2>
+      <h2 class="md-flex">Datos de la <md-input-container><input ng-model="view.title" style="margin-top: 20px; color: rgba(255,255,255,0.87);" value="{{view.title}}"></md-input-container></h2>
       <md-select placeholder="{{view.listBroadcasting}}" ng-model="broadcast" style="color:white;min-width: 200px; margin-left:100px;">
         <md-option ng-value="broadcast" ng-repeat="broadcast in broadcasts" ng-click="getBroadcast(broadcast.id_stream)" >{{broadcast.title}} {{broadcast.status}}</md-option>
       </md-select>
@@ -43,6 +43,7 @@ if(!$client->getAccessToken()){
   </md-toolbar>
     <md-content style='padding: 40px;overflow: hidden;'>
         <label>Fecha:</label><md-datepicker ng-model="view.date" md-placeholder="Ingrese la fecha actual" style="max-width:25%"></md-datepicker>
+<!--
         <md-input-container class="md-block" flex-gt-sm>
             <label>Hora Inicio (Formato 00:00)</label>
             <input ng-model="view.init_time" style="min-width: 120px;max-width: 25%;">
@@ -51,6 +52,7 @@ if(!$client->getAccessToken()){
             <label>Hora Fin (Formato 00:00)</label>
             <input ng-model="view.finish_time" style="min-width: 120px;max-width: 25%;">
         </md-input-container>
+-->
         <md-button class="md-raised" ng-model="btnCreate" ng-click="created()" ng-disabled="view.btnCreateDisabled">Crear</md-button>    
     </md-content>
  <md-toolbar class="md-info" ng-hide="view.hideDataTransmision">
