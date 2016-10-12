@@ -63,6 +63,14 @@ angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'load
             id = response.data.broadcast_id
             $scope.view.btnCreateDisabled= false;
 
+            var name = response.data.streaming_name
+            if(!['good', 'ok', 'bad'].includes($scope.transmision.status)){
+                 $http({
+                  method: 'GET',
+                  url: 'http://localhost:5000/streaming/' + name
+                })
+            } 
+
           }, function errorCallback(response) {
             console.log("error :(");
             console.log(response.data)
@@ -74,6 +82,11 @@ angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'load
         $scope.view.status.color = "gray";
         $scope.transmision.status = "Verificando..."
         
+        $http({
+          method: 'GET',
+          url: 'http://localhost:5000/streaming/' + $scope.transmision.idStream
+        })
+
         $interval(getStatus, 10000);
     }
 
@@ -124,11 +137,24 @@ angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'load
             $scope.view.hideEmision = true;
             $scope.view.hideComplete = true;
 
+            var name = response.data.streaming_name
+            if(!['good', 'ok', 'bad'].includes($scope.transmision.status)){
+                 $http({
+                  method: 'GET',
+                  url: 'http://localhost:5001/streaming/stop'
+                })
+            } 
+
           }, function errorCallback(response) {
             console.log("fallo al detener la emision: ")
             console.log(response.data)
             showDialog(":: Error ::","Error al intentar pasar la transmision al estado 'COMPLETE")
         });
+
+        $http({
+          method: 'GET',
+          url: 'http://localhost:5001/streaming/stop'
+        })
     }
     $scope.getBroadcast = function($id){
         console.log('http://localhost/www/broadcasting/getBroadcast.php?id=' + $id)
@@ -163,6 +189,13 @@ angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'load
                 }
             }
             
+            var name = response.data.streaming_name
+            if(!['good', 'ok', 'bad'].includes($scope.transmision.status)){
+                 $http({
+                  method: 'GET',
+                  url: 'http://localhost:5000/streaming/' + name
+                })
+            } 
 
           }, function errorCallback(response) {
             console.log("fallo al obtener broadcasting: ")
