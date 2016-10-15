@@ -26,6 +26,7 @@ if(!$client->getAccessToken()){
     <script src="bower_components/ngclipboard/dist/ngclipboard.min.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js"></script>
     <script src="js/index.js"></script>
+    <script src="js/BroadcastingService.js"></script>
 
     <script src="bower_components/angular-qrcode/angular-qrcode.js"></script>
     <script src="bower_components/qrcode-generator/js/qrcode.js"></script>
