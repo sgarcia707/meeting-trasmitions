@@ -46,17 +46,7 @@ class Brodcasting {
 
    static function says() {echo 'ruff';} 
 
-   function createBrodcasting(){
-   		$title = "";
-		$init_timestamp = "";
-		$finish_timestamp = "";
-
-
-		if(isset($_GET['title']) &&  isset($_GET['init_timestamp']) &&  isset($_GET['finish_timestamp'])){
-			        $title = $_GET['title'];
-			        $init_timestamp = $_GET['init_timestamp'];
-			        $finish_timestamp = $_GET['finish_timestamp'];
-	    }
+   function createBrodcasting($title, $init_timestamp, $finish_timestamp){
 
 	    if ($this->client->getAccessToken()) {
 
@@ -147,12 +137,7 @@ class Brodcasting {
 		}
    }
 
-   function changeStatus(){
-	   if(isset($_GET['id']) && isset($_GET['status'])){
-		   $id = $_GET['id'];
-		   $status = $_GET['status'];
-
-	   }
+   function changeStatus($id, $status){
 
    		if ($this->client->getAccessToken()) {
 		    $youtube = new Google_Service_YouTube($this->client);
@@ -220,12 +205,9 @@ class Brodcasting {
 		}
    }
 
-   function getBroadcast(){
+   function getBroadcast($id){
    	$youtube = new Google_Service_YouTube($this->client);
 
-   	if(isset($_GET['id'])){
-		   $id = $_GET['id'];
-	 }
    	if ($this->client->getAccessToken()) {
 
 		  try {
@@ -261,14 +243,9 @@ class Brodcasting {
 		}
    }
 
-   function getStratus(){
+   function getStratus($id){
 
    	 	$youtube = new Google_Service_YouTube($this->client);
-
-   	 	if(isset($_GET['id'])){
-			$id = $_GET['id'];
-	 	}
-
 	 	
 	 	if ($this->client->getAccessToken()) {
 		  try {

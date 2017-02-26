@@ -60,13 +60,50 @@ $app->put('/configuration/ffmpeg/update', function ($request, $response) {
     $condition = $data->condition;
     $json = $data->json;
 
-    $brodcasting->updateConfigurationFfmpeg($condition, $json);
+    $return = $brodcasting->updateConfigurationFfmpeg($condition, $json);
+
+    return $response->withJson($return, 201);
 });
 
 $app->get('/list/broadcasting', function ($request, $response) {
     $brodcasting = new Brodcasting();
     $data = $brodcasting->listBroadcast();
-    return $response->withJson($data, 201);
+    return $response->withJson($data, 200);
+});
+
+$app->post('/streaming/created', function ($request, $response) {
+    $data = json_decode($request->getBody());
+
+    $brodcasting = new Brodcasting();
+    $return = $brodcasting->createBrodcasting($data->title, $data->init_timestamp, $data->finish_timestamp);
+
+    return $response->withJson($return, 201);
+});
+
+$app->get('/streaming/change/status', function ($request, $response) {
+    $data = json_decode($request->getBody());
+
+    $brodcasting = new Brodcasting();
+    $return = $brodcasting->changeStatus($data->id, $data->status);
+
+    return $response->withJson($return, 200);
+});
+
+$app->get('/broadcast/{id}', function ($request, $response) {
+    $id = $request->get('id');
+
+    $brodcasting = new Brodcasting();
+    $return = $brodcasting->getBroadcast($id);
+
+    return $response->withJson($return, 200);
+});
+
+$app->get('/broadcast/status', function ($request, $response) {
+    $id = $request->get('id');
+    $brodcasting = new Brodcasting();
+    $return = $brodcasting->getStratus($id);
+
+    return $response->withJson($return, 200);
 });
 
 $app->run();
