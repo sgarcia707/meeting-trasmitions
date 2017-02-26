@@ -36,7 +36,7 @@ var broadcastingServices = angular.module("BroadcastingService", [])
 
  		var createdBroadcast = function(title, init_time, finish_time){
 			$http({
-	          method: 'GET',
+	          method: 'POST',
 	          url: url + '/streaming/created',
             data: { "title": title, "init_time": init_time, "finish_time": finish_time }
 	        }).then(function successCallback(response) {
@@ -44,6 +44,7 @@ var broadcastingServices = angular.module("BroadcastingService", [])
 	        	name = response.data.streaming_name
 	            defered.resolve(response);
 	          }, function errorCallback(response) {
+              console.log(response)
 	            defered.reject(response);
 	        });
  		}
@@ -91,7 +92,7 @@ var broadcastingServices = angular.module("BroadcastingService", [])
         var getBroadcastForId = function(id){
         	$http({
 	          	method: 'GET',
-	          	url: url + '/broadcast/' + id
+	          	url: url + '/broadcast/get/' + id
 	        }).then(function successCallback(response) {
 	        	responseRequest = response
 	        	name = response.data.streaming_name
@@ -125,7 +126,7 @@ var broadcastingServices = angular.module("BroadcastingService", [])
         var promise = defered.promise;
     	http({
           method: 'GET',
-          url: url + '/broadcast/status' + id
+          url: url + '/broadcast/status/' + id
         }).then(function successCallback(response) {
             defered.resolve(response);
           }, function errorCallback(response) {
@@ -156,6 +157,7 @@ var broadcastingServices = angular.module("BroadcastingService", [])
 
         }, function errorCallback(response) {
            console.log("fallo al obtener configuraciones ffmpeg: ")
+           console.log(response)
            defered.reject(response);
         }); 
 
@@ -168,7 +170,7 @@ var broadcastingServices = angular.module("BroadcastingService", [])
 
         var data = { "description": description, "configuration": configuration }
 
-        var conAjax = $http.post("addConfigurationFfmpeg.php", data);
+        var conAjax = $http.post( url + "/configuration/ffmpeg/add", data);
 
         conAjax.success(function(response){
               console.log("Agregado de configuracion:")

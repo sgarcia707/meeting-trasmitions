@@ -180,6 +180,8 @@ myapp.controller('AppCtrl', function($scope, $http, $mdDialog, $interval, Broadc
         $scope.configurations.description = "";
         $scope.configurations.ffmpeg = "";
 
+        console.log("description: " + description + " configuracion: " + configuracion)
+
         Broadcaster.addConfigurationFfmpeg(description, configuration).then(function(response) {
             console.log("Agregando una nueva configuracion ffmpeg:")
             console.log(response.data)
@@ -245,6 +247,7 @@ myapp.controller('AppCtrl', function($scope, $http, $mdDialog, $interval, Broadc
     function getStatus(){
         Broadcaster.getStatus(id).then(function(response) {
             console.log("cargando datos de estado de la transmision")
+            console.log(response)
             console.log(response.data)
             $scope.transmision.status = response.data.status
             statusColor(response.data.status)
