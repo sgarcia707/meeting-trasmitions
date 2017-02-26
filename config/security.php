@@ -1,5 +1,4 @@
 <?php
-
 function getOAuthCredentialsFile()
 {
   // oauth2 creds

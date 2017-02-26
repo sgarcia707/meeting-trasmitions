@@ -1,12 +1,15 @@
 var http
 var id
 
-angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'loadingMsgDirective']).controller('AppCtrl', function($scope, $http, $mdDialog, $interval) {
+var myapp = angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'loadingMsgDirective', 'BroadcastingService']);
 
-  $scope.view = new Object();
+myapp.controller('AppCtrl', function($scope, $http, $mdDialog, $interval, Broadcaster) {
+
+    $scope.view = new Object();
     $scope.view.date = new Date();
     $scope.view.init_time = "";
     $scope.view.finish_time = "";
+    $scope.view.title = "Reunion";
     $scope.view.hideDataTransmision = true;
     $scope.view.btnCreateDisabled = false;
 
@@ -20,19 +23,28 @@ angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'load
     $scope.transmision = new Object();
 
     $scope.view.listBroadcasting = "cargando..."
-    $http({
-          method: 'GET',
-          url: 'http://localhost/www/broadcasting/listBroadcast.php'
-        }).then(function successCallback(response) {
-            console.log("cargo datos de broadcasting existentes")
-            console.log(response.data)
-            $scope.broadcasts = response.data;
-            $scope.view.listBroadcasting = "Seleccione una Reunion"
 
-          }, function errorCallback(response) {
-            console.log("fallo al obtener broadcasting: ")
+    $scope.configuration = new Object();
+
+    Broadcaster.getConfigurationFfmpeg().then(function(response) {
+            console.log("cargando datos de estado de la transmision")
             console.log(response.data)
-    });   
+            $scope.configuration.config_ffmpeg = response.data;
+    })
+    .catch(function(err) {
+        console.log("fallo al cargar datos de estado de la transmision: ")
+        console.log(err.data)
+    })
+
+    Broadcaster.listBroadcast().then(function(response) {
+        $scope.broadcasts = response.data;
+        $scope.view.listBroadcasting = "Seleccione una Reunion"
+    })
+    .catch(function(err) {
+        // Tratar el error
+        console.log("fallo al obtener broadcasting: ")
+        console.log(err)
+    })
 
     $scope.created = function(){
         console.log("click")
@@ -40,14 +52,13 @@ angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'load
         var month = $scope.view.date.getUTCMonth() + 1; 
         var day = $scope.view.date.getUTCDate();
         var year = $scope.view.date.getUTCFullYear();
-        name = "Reunion_" + year + "-" + ((month < 10)? "0" + month : month) + "-" + ((day < 10)? "0" + day : day)
-        init_time = year + "-" + ((month < 10)? "0" + month : month) + "-" + ((day < 10)? "0" + day : day) + "T" + $scope.view.init_time + ":00.000Z"
-        finish_time = year + "-" + ((month < 10)? "0" + month : month) + "-" + ((day < 10)? "0" + day : day) + "T" + $scope.view.finish_time + ":00.000Z"
+        var title = $scope.view.title.replace(/ /g,"_");
+        name = title + "_"  +  ((day < 10)? "0" + day : day) + "-" + ((month < 10)? "0" + month : month) +  "-" + year
+        init_time = year + "-" + ((month < 10)? "0" + month : month) + "-" + ((day < 10)? "0" + day : day) + "T" + $scope.view.init_time + ":00.000-03:00"
+        finish_time = year + "-" + ((month < 10)? "0" + month : month) + "-" + ((day < 10)? "0" + day : day) + "T" + $scope.view.finish_time + ":00.000-03:00"
 
-        $http({
-          method: 'GET',
-          url: 'http://localhost/www/broadcasting/api.php?title='+ name +'&init_timestamp=' + init_time + '&finish_timestamp=' + finish_time
-        }).then(function successCallback(response) {
+        
+        Broadcaster.created(name, init_time, finish_time).then(function(response) {
             console.log("todo ok")
             $scope.view.hideDataTransmision = false;
             console.log(response)
@@ -60,80 +71,70 @@ angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'load
             $scope.transmision.broadcastId = response.data.broadcast_id
             id = response.data.broadcast_id
             $scope.view.btnCreateDisabled= false;
-
-          }, function errorCallback(response) {
+        })
+        .catch(function(err) {
             console.log("error :(");
-            console.log(response.data)
+            console.log(err.data)
             $scope.view.btnCreateDisabled = false;
             showDialog(":: Error ::","Error al intentar crear la transmision")
-        });
+        })
 
         http = $http
         $scope.view.status.color = "gray";
         $scope.transmision.status = "Verificando..."
-        
         $interval(getStatus, 10000);
     }
 
     $scope.test = function(){
-        $http({
-          method: 'GET',
-          url: 'http://localhost/www/broadcasting/changeStatus.php?id=' + $scope.transmision.idStream + '&status=testing'
-        }).then(function successCallback(response) {
+        Broadcaster.changeStatus($scope.transmision.idStream, "testing").then(function(response) {
             console.log("paso a test")
             console.log(response.data)
             $scope.view.hideTest = true;
             $scope.view.hideEmision = false;
             $scope.view.hideComplete = true;
-            
-          }, function errorCallback(response) {
+        })
+        .catch(function(err) {
             console.log("fallo el Test:")
-            console.log(response.data)
+            console.log(err.data)
             showDialog(":: Error ::","Error al intentar pasar la transmision al estado 'TEST'")
-        });
+        })
     }
 
     $scope.emision = function(){
-        $http({
-          method: 'GET',
-          url: 'http://localhost/www/broadcasting/changeStatus.php?id=' + $scope.transmision.idStream + '&status=live'
-        }).then(function successCallback(response) {
+        Broadcaster.changeStatus($scope.transmision.idStream, "live").then(function(response) {
             console.log("paso a emitir")
             console.log(response.data)
             $scope.view.hideTest = true;
             $scope.view.hideEmision = true;
             $scope.view.hideComplete = false;
-
-          }, function errorCallback(response) {
+        })
+        .catch(function(err) {
             console.log("fallo la emision: ")
-            console.log(response.data)
+            console.log(err.data)
             showDialog(":: Error ::","Error al intentar pasar la transmision al estado 'LIVE'")
-        });
+        })
     }
     $scope.detenerEmision = function(){
-        $http({
-          method: 'GET',
-          url: 'http://localhost/www/broadcasting/changeStatus.php?id=' + $scope.transmision.idStream + '&status=complete'
-        }).then(function successCallback(response) {
+        Broadcaster.changeStatus($scope.transmision.idStream, "complete").then(function(response) {
             console.log("detuvo emision")
             console.log(response.data)
             
             $scope.view.hideTest = true;
             $scope.view.hideEmision = true;
             $scope.view.hideComplete = true;
-
-          }, function errorCallback(response) {
+        })
+        .catch(function(err) {
             console.log("fallo al detener la emision: ")
-            console.log(response.data)
+            console.log(err.data)
             showDialog(":: Error ::","Error al intentar pasar la transmision al estado 'COMPLETE")
-        });
+        })
+
+        Broadcaster.stopBroadcaster();
     }
     $scope.getBroadcast = function($id){
         console.log('http://localhost/www/broadcasting/getBroadcast.php?id=' + $id)
-        $http({
-          method: 'GET',
-          url: 'http://localhost/www/broadcasting/getBroadcast.php?id=' + $id
-        }).then(function successCallback(response) {
+        
+        Broadcaster.getBroadcast($id).then(function(response) {
             console.log("obtuvo datos emision")
             console.log(response.data)
             $scope.view.hideDataTransmision = false;
@@ -160,17 +161,74 @@ angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'load
                     $scope.view.hideComplete = false;
                 }
             }
-            
-
-          }, function errorCallback(response) {
+        })
+        .catch(function(err) {
             console.log("fallo al obtener broadcasting: ")
-            console.log(response.data)
-        });
+            console.log(err.data)
+        })
+
         http = $http
         $scope.view.status.color = "gray";
         $scope.transmision.status = "Verificando..."
 
         $interval(getStatus, 10000);
+    }
+
+    $scope.saveConfig = function(){
+        var description = $scope.configurations.description;
+        var configuration = $scope.configurations.ffmpeg;
+        $scope.configurations.description = "";
+        $scope.configurations.ffmpeg = "";
+
+        Broadcaster.addConfigurationFfmpeg(description, configuration).then(function(response) {
+            console.log("Agregando una nueva configuracion ffmpeg:")
+            console.log(response.data)
+        })
+        .catch(function(err) {
+            console.log("error al agregar una configuracion ffmpeg:")
+            console.log(err.data)
+        })
+
+
+        Broadcaster.getConfigurationFfmpeg().then(function(response) {
+            console.log("cargando datos de las configuraciones ffmpeg")
+            console.log(response.data)
+            $scope.configuration.config_ffmpeg = response.data;
+        })
+        .catch(function(err) {
+            console.log("fallo al cargar datos de las configuraciones ffmpeg:")
+            console.log(err.data)
+        })
+    }
+
+    $scope.updateStatusConfiguration = function(id, status){
+        var json = { "$set": {"active":!status } };
+        var condition = { "_id": id }
+        
+        console.log("json put status configuracion ffmpeg:")
+        console.log(json)
+        console.log("condicion actualizacion configuracion ffmpeg:")
+        console.log(condition)
+
+        Broadcaster.updateConfigurationFfmpeg(condition, json).then(function(response) {
+            console.log("Actualizando una configuracion ffmpeg:")
+            console.log(response.data)
+        })
+        .catch(function(err) {
+            console.log("error al actualizar una configuracion ffmpeg:")
+            console.log(err.data)
+        })
+
+
+        Broadcaster.getConfigurationFfmpeg().then(function(response) {
+            console.log("cargando datos de las configuraciones ffmpeg")
+            console.log(response.data)
+            $scope.configuration.config_ffmpeg = response.data;
+        })
+        .catch(function(err) {
+            console.log("fallo al cargar datos de las configuraciones ffmpeg:")
+            console.log(err.data)
+        })
     }
 
     function showDialog(title, text) {
@@ -185,20 +243,18 @@ angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'load
     }
 
     function getStatus(){
-        http({
-              method: 'GET',
-              url: 'http://localhost/www/broadcasting/getStatus.php?id=' + id
-            }).then(function successCallback(response) {
-                console.log("cargando datos de estado de la transmision")
-                console.log(response.data)
-                $scope.transmision.status = response.data.status
-                statusColor(response.data.status)
-              }, function errorCallback(response) {
-                console.log("fallo al cargar datos de estado de la transmision: ")
-                console.log(response.data)
-                $scope.transmision.status = "Error";
-                $scope.view.status.color = "red";
-            });
+        Broadcaster.getStatus(id).then(function(response) {
+            console.log("cargando datos de estado de la transmision")
+            console.log(response.data)
+            $scope.transmision.status = response.data.status
+            statusColor(response.data.status)
+        })
+        .catch(function(err) {
+            console.log("fallo al cargar datos de estado de la transmision: ")
+            console.log(err.data)
+            $scope.transmision.status = "Error";
+            $scope.view.status.color = "red";
+        })
     }
 
     function statusColor(status){
@@ -223,7 +279,6 @@ angular.module('BlankApp',['ngMaterial', 'ngMessages','monospaced.qrcode', 'load
             $scope.transmision.status = "Verificando..."
         }
     }
-
 });
 
 
@@ -269,5 +324,4 @@ loadingMsgDirective.directive('loadingMsg', [function() {
       }
     };
 }]);
-
 
