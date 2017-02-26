@@ -1,0 +1,35 @@
+db.createCollection("counters")
+
+db.counters.insert({_id:"streamingid",sequence_value:0})
+
+function getNextSequenceValue(sequenceName){
+
+   var sequenceDocument = db.counters.findAndModify({
+      query:{_id: sequenceName },
+      update: {$inc:{sequence_value:1}},
+      new:true
+   });
+	
+   return sequenceDocument.sequence_value;
+}
+
+
+db.createCollection( "streaming",
+   { validator: { $or:
+      [
+         { description: { $type: "string" } },
+         { config: { $type: "string" } },
+         { active: { $in: [ true, false ] } }
+      ]
+   }
+} )
+
+
+streaming.streaming.insert( { "_id":getNextSequenceValue("streamingid"), description: "Windows -  Configuracion Solo Audio", config: "f dshow -i audio='@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\wave_{D1890F9D-76B4-4393-B77A-10616C849FED}' -loop 1 -i cover.jpg -vcodec libx264 -preset veryfast -maxrate 3000k -bufsize 3000k -vf 'scale=240:-1,format=yuv422p10le' -g 60 -c:a aac -b:a 128k -ar 44100 -strict -2", active: true } )
+
+
+streaming.streaming.remove(description:"a")
+
+composer require slim/slim "^3.0"
+
+sudo a2enmod rewrite && sudo service apache2 restart

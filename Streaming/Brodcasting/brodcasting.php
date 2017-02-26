@@ -1,6 +1,6 @@
-<?php 
-include_once 'vendor/autoload.php';
-include_once "config/security.php";
+<?php
+include_once $GLOBALS['url'].'/vendor/autoload.php';
+include_once $GLOBALS['url']."/config/security.php";
 
 class Brodcasting {
 
@@ -43,6 +43,8 @@ class Brodcasting {
 	        $authUrl = $this->client->createAuthUrl();
 	    }
    }
+
+   static function says() {echo 'ruff';} 
 
    function createBrodcasting(){
    		$title = "";
@@ -136,15 +138,12 @@ class Brodcasting {
 
 		    $_SESSION['token'] = $this->client->getAccessToken();
 
-		    header('Content-Type: application/json');
-		    http_response_code(200);
-
-		    echo json_encode($array);
+		    return $array;
 		} else {
 		    $exceptionError = array("message"=> "Token not fund: " . $this->client->createAuthUrl(), "code"=>"500");
 		    header('Content-Type: application/json');
 		    http_response_code(500);
-		    echo json_encode($exceptionError);
+		    return json_encode($exceptionError);
 		}
    }
 
@@ -159,31 +158,22 @@ class Brodcasting {
 		    $youtube = new Google_Service_YouTube($this->client);
 		    try{
 		        $broadcastsResponse = $youtube->liveBroadcasts->transition($status, $id, "id, contentDetails, status");
-		        header('Content-Type: application/json');
-		        http_response_code(200);
 		        $responseOk = array("status"=>$status, "id"=>$id);
-		        echo(json_encode($responseOk));
+		        return $responseOk;
 		    }catch (Google_Service_Exception $e) {
 		        $gServiceError = array("message"=> $e->getErrors()[0]["message"], "code"=>"500");
-		        header('Content-Type: application/json');
-		        http_response_code(500);
-		        echo(json_encode($gServiceError));
+		        return(json_encode($gServiceError));
 		    } catch (Google_Exception $e) {
 		        $gServiceError = array("message"=> "Error: transactions is inactive", "code"=>"500");
-		        header('Content-Type: application/json');
-		        http_response_code(500);
-		        echo(json_encode($gServiceError));
+		        return(json_encode($gServiceError));
 		    }catch(Exception $e){
 		        $gServiceError = array("message"=> "Error: transactions is inactive", "code"=>"500");
-		        http_response_code(500);
-		        echo(json_encode($gServiceError));
+		        return(json_encode($gServiceError));
 		    }
 
 		} else {
 		    $exceptionError = array("message"=> "Token not fund: " . $this->client->createAuthUrl(), "code"=>"500");
-		    header('Content-Type: application/json');
-		    http_response_code(500);
-		    echo json_encode($exceptionError);
+		    return json_encode($exceptionError);
 		}
    }
 
@@ -213,27 +203,20 @@ class Brodcasting {
 			      array_push($list, $row);
 			   }
 
-		    http_response_code(200);
-	        echo(json_encode($list));
+	        return $list;
 
 		  } catch (Google_Service_Exception $e) {
 	    	$gServiceError = array("message"=> $e->getErrors()[0]["message"], "code"=>"500");
-	        header('Content-Type: application/json');
-	        http_response_code(500);
-	        echo(json_encode($gServiceError));
+	        return(json_encode($gServiceError));
 		  } catch (Google_Exception $e) {
 	    	$gServiceError = array("message"=> "Error: get transactions error", "code"=>"500");
-	        header('Content-Type: application/json');
-	        http_response_code(500);
-	        echo(json_encode($gServiceError));
+	        return(json_encode($gServiceError));
 		  }
 
 		  $_SESSION['token'] = $this->client->getAccessToken();
 		} else {
 			$exceptionError = array("message"=> "Token not fund: " . $this->client->createAuthUrl(), "code"=>"500");
-		    header('Content-Type: application/json');
-		    http_response_code(500);
-		    echo json_encode($exceptionError);
+		    return json_encode($exceptionError);
 		}
    }
 
@@ -246,9 +229,6 @@ class Brodcasting {
    	if ($this->client->getAccessToken()) {
 
 		  try {
-		    /*$streamsResponse = $youtube->liveStreams->listLiveStreams('id,snippet,cdn,status', array(
-		        'id' => $id
-		    ))[0];*/
 
 				$brodcastResponse = $youtube->liveBroadcasts->listLiveBroadcasts('contentDetails, status, snippet, id', array(
 					  'id' => $id
@@ -264,27 +244,20 @@ class Brodcasting {
 			    $broadcast = array("id_stream"=>$brodcastResponse["id"], "title"=>$brodcastResponse['snippet']['title'], "published"=> $brodcastResponse['snippet']['publishedAt'],
 			            "url"=>"https://www.youtube.com/my_live_events?camera_tab=0&event_id=". $brodcastResponse["id"] ."&action_edit_live_event_stream=1", "streaming_name"=>$streaming_name, "broadcast_id"=>$brodcastResponse['contentDetails']['boundStreamId'], "status"=> $brodcastResponse['status']['lifeCycleStatus']);
 
-			    http_response_code(200);
-		        echo(json_encode($broadcast));
+		        return $broadcast;
 
 		  } catch (Google_Service_Exception $e) {
 	    	$gServiceError = array("message"=> $e->getErrors()[0]["message"], "code"=>"500");
-	        header('Content-Type: application/json');
-	        http_response_code(500);
-	        echo(json_encode($gServiceError));
+	        return(json_encode($gServiceError));
 		  } catch (Google_Exception $e) {
 	    	$gServiceError = array("message"=> "Error: get transactions error", "code"=>"500");
-	        header('Content-Type: application/json');
-	        http_response_code(500);
-	        echo(json_encode($gServiceError));
+	        return(json_encode($gServiceError));
 		  }
 
 		  $_SESSION['token'] = $this->client->getAccessToken();
 		} else {
 			$exceptionError = array("message"=> "Token not fund: " . $this->client->createAuthUrl(), "code"=>"500");
-		    header('Content-Type: application/json');
-		    http_response_code(500);
-		    echo json_encode($exceptionError);
+		    return json_encode($exceptionError);
 		}
    }
 
@@ -304,27 +277,125 @@ class Brodcasting {
 
 		  	$streaming = array('id_stream' =>$id , "status"=> $streamsResponse['status']['healthStatus']['status']);
 
-			http_response_code(200);
-		    echo(json_encode($streaming));
+		    return $streaming;
 
 		  }catch (Google_Service_Exception $e) {
 	    	$gServiceError = array("message"=> $e->getErrors()[0]["message"], "code"=>"500");
-	        header('Content-Type: application/json');
-	        http_response_code(500);
-	        echo(json_encode($gServiceError));
+	        return(json_encode($gServiceError));
 		  } catch (Google_Exception $e) {
 	    	$gServiceError = array("message"=> "Error: get transactions error", "code"=>"500");
-	        header('Content-Type: application/json');
-	        http_response_code(500);
-	        echo(json_encode($gServiceError));
+	        return(json_encode($gServiceError));
 		  }
 
 	   } else {
-				$exceptionError = array("message"=> "Token not fund: " . $this->client->createAuthUrl(), "code"=>"500");
-			    header('Content-Type: application/json');
-			    http_response_code(500);
-			    echo json_encode($exceptionError);
+			$exceptionError = array("message"=> "Token not fund: " . $this->client->createAuthUrl(), "code"=>"500");
+		    return json_encode($exceptionError);
 		}
+	}
+
+	function getConfigurationFfmpeg(){
+		$youtube = new Google_Service_YouTube($this->client);
+
+   	 	if(isset($_GET['id'])){
+			$id = $_GET['id'];
+	 	}
+
+	 	
+	 	if ($this->client->getAccessToken()) {
+		  try {
+		  		$mng = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+			    $query = new MongoDB\Driver\Query([]); 
+			     
+			    $rows = $mng->executeQuery("streaming.streaming", $query);
+			    
+			    $json = array();
+			    foreach ($rows as $row) {
+			    	array_push($json, array('description'=>$row->description, 'config'=>$row->config, 'active'=>$row->active, "_id"=>$row->_id));
+			    }
+				return $json;
+
+		  }catch (Google_Service_Exception $e) {
+	    	$gServiceError = array("message"=> $e->getErrors()[0]["message"], "code"=>"500");
+	        return(json_encode($gServiceError));
+		  } catch (Google_Exception $e) {
+	    	$gServiceError = array("message"=> "Error: get transactions error", "code"=>"500");
+	        return(json_encode($gServiceError));
+		  }
+
+   		} else {
+			$exceptionError = array("message"=> "Token not fund: " . $this->client->createAuthUrl(), "code"=>"500");
+		    return json_encode($exceptionError);
+		}
+	}
+
+	function addConfigurationFfmpeg($description, $configuration){
+		  try {
+		  		$mng = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+		  		$bulk = new MongoDB\Driver\BulkWrite();
+		  		$lastid = $this->getLastConunterId() + 1;
+		  		$json = array('_id' => $lastid, 'description' => $description, 'config'=> $configuration, 'active'=>true);
+				$bulk->insert($json);
+				$mng->executeBulkWrite('streaming.streaming', $bulk);
+
+				return $json;
+		  }catch (Google_Service_Exception $e) {
+	    	$gServiceError = array("message"=> $e->getErrors()[0]["message"], "code"=>"500");
+	        return(json_encode($gServiceError));
+		  } catch (Google_Exception $e) {
+	    	$gServiceError = array("message"=> "Error: get transactions error", "code"=>"500");
+	        return(json_encode($gServiceError));
+		  }
+
+	}
+
+	function updateConfigurationFfmpeg($condition, $json){
+
+			try {
+			  		$mng = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+			  		$bulk = new MongoDB\Driver\BulkWrite();
+					$bulk->update($condition, $json);
+					$mng->executeBulkWrite('streaming.streaming', $bulk);
+
+					header('Content-Type: application/json');
+					http_response_code(200);
+
+					return $json;
+			  }catch (Google_Service_Exception $e) {
+		    	$gServiceError = array("message"=> $e->getErrors()[0]["message"], "code"=>"500");
+		        return(json_encode($gServiceError));
+			  } catch (Google_Exception $e) {
+		    	$gServiceError = array("message"=> "Error: get transactions error", "code"=>"500");
+		        return(json_encode($gServiceError));
+			  }catch(Exception $e){
+				return (json_encode($e)); 
+			  }
 	} 
+
+	function getLastConunterId(){
+		try {
+			$mng = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+			$filter = [];
+
+			$options = [
+			    'sort' => [
+			        "_id" => -1 
+			    ],
+			    'limit' => 1
+			];
+
+			$query = new MongoDB\Driver\Query($filter, $options); 
+			 
+			$rows = $mng->executeQuery("streaming.streaming", $query);
+
+
+
+			foreach ($rows as $row) {
+				return $row->_id;
+			}
+
+		}catch(Exception $e){
+			return (json_encode($e)); 
+		}
+	}
 }
 ?> 

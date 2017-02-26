@@ -24,6 +24,18 @@ myapp.controller('AppCtrl', function($scope, $http, $mdDialog, $interval, Broadc
 
     $scope.view.listBroadcasting = "cargando..."
 
+    $scope.configuration = new Object();
+
+    Broadcaster.getConfigurationFfmpeg().then(function(response) {
+            console.log("cargando datos de estado de la transmision")
+            console.log(response.data)
+            $scope.configuration.config_ffmpeg = response.data;
+    })
+    .catch(function(err) {
+        console.log("fallo al cargar datos de estado de la transmision: ")
+        console.log(err.data)
+    })
+
     Broadcaster.listBroadcast().then(function(response) {
         $scope.broadcasts = response.data;
         $scope.view.listBroadcasting = "Seleccione una Reunion"
@@ -162,6 +174,63 @@ myapp.controller('AppCtrl', function($scope, $http, $mdDialog, $interval, Broadc
         $interval(getStatus, 10000);
     }
 
+    $scope.saveConfig = function(){
+        var description = $scope.configurations.description;
+        var configuration = $scope.configurations.ffmpeg;
+        $scope.configurations.description = "";
+        $scope.configurations.ffmpeg = "";
+
+        Broadcaster.addConfigurationFfmpeg(description, configuration).then(function(response) {
+            console.log("Agregando una nueva configuracion ffmpeg:")
+            console.log(response.data)
+        })
+        .catch(function(err) {
+            console.log("error al agregar una configuracion ffmpeg:")
+            console.log(err.data)
+        })
+
+
+        Broadcaster.getConfigurationFfmpeg().then(function(response) {
+            console.log("cargando datos de las configuraciones ffmpeg")
+            console.log(response.data)
+            $scope.configuration.config_ffmpeg = response.data;
+        })
+        .catch(function(err) {
+            console.log("fallo al cargar datos de las configuraciones ffmpeg:")
+            console.log(err.data)
+        })
+    }
+
+    $scope.updateStatusConfiguration = function(id, status){
+        var json = { "$set": {"active":!status } };
+        var condition = { "_id": id }
+        
+        console.log("json put status configuracion ffmpeg:")
+        console.log(json)
+        console.log("condicion actualizacion configuracion ffmpeg:")
+        console.log(condition)
+
+        Broadcaster.updateConfigurationFfmpeg(condition, json).then(function(response) {
+            console.log("Actualizando una configuracion ffmpeg:")
+            console.log(response.data)
+        })
+        .catch(function(err) {
+            console.log("error al actualizar una configuracion ffmpeg:")
+            console.log(err.data)
+        })
+
+
+        Broadcaster.getConfigurationFfmpeg().then(function(response) {
+            console.log("cargando datos de las configuraciones ffmpeg")
+            console.log(response.data)
+            $scope.configuration.config_ffmpeg = response.data;
+        })
+        .catch(function(err) {
+            console.log("fallo al cargar datos de las configuraciones ffmpeg:")
+            console.log(err.data)
+        })
+    }
+
     function showDialog(title, text) {
         $mdDialog.show(
           $mdDialog.alert()
@@ -210,7 +279,6 @@ myapp.controller('AppCtrl', function($scope, $http, $mdDialog, $interval, Broadc
             $scope.transmision.status = "Verificando..."
         }
     }
-
 });
 
 
@@ -256,3 +324,4 @@ loadingMsgDirective.directive('loadingMsg', [function() {
       }
     };
 }]);
+

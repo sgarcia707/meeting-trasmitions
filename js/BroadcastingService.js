@@ -1,13 +1,18 @@
 var broadcastingServices = angular.module("BroadcastingService", [])
 
 .service('Broadcaster', function($http, $q) {
+
+  var baseURL = window.location.href 
+  var n = baseURL.indexOf("broadcasting");
+  var url = baseURL.substring(0, n) + 'broadcasting';
+
    this.listBroadcast = function () {
         var defered = $q.defer();
         var promise = defered.promise;
 
         $http({
           method: 'GET',
-          url: 'http://localhost/www/broadcasting/listBroadcast.php'
+          url: url + '/list/broadcasting'
         }).then(function successCallback(response) {
             console.log("cargo datos de broadcasting existentes")
 			defered.resolve(response);
@@ -20,6 +25,8 @@ var broadcastingServices = angular.module("BroadcastingService", [])
         return promise;
     }
 
+    
+
     this.created = function(title, init_time, finish_time){
     	console.log("name: " + title + " init: " + init_time + " finish: " + finish_time)
     	var defered = $q.defer();
@@ -30,7 +37,8 @@ var broadcastingServices = angular.module("BroadcastingService", [])
  		var createdBroadcast = function(title, init_time, finish_time){
 			$http({
 	          method: 'GET',
-	          url: 'http://localhost/www/broadcasting/api.php?title='+ title +'&init_timestamp=' + init_time + '&finish_timestamp=' + finish_time
+	          url: url + '/streaming/created',
+            data: { "title": title, "init_time": init_time, "finish_time": finish_time }
 	        }).then(function successCallback(response) {
 	        	responseRequest = response
 	        	name = response.data.streaming_name
@@ -44,7 +52,7 @@ var broadcastingServices = angular.module("BroadcastingService", [])
             if(!['good', 'ok', 'bad'].includes(responseRequest.status)){
                  $http({
                   method: 'GET',
-                  url: 'http://localhost:5000/streaming/' + name
+                  url: url + 'http://localhost:5000/streaming/' + name
                 })
             } 
             return responseRequest
@@ -62,7 +70,8 @@ var broadcastingServices = angular.module("BroadcastingService", [])
 
     	$http({
           method: 'GET',
-          url: 'http://localhost/www/broadcasting/changeStatus.php?id=' + idStream + '&status=' + status
+          url: url + '/streaming/change/status',
+          data: { "idStream": idStream, "status": status }
         }).then(function successCallback(response) {
             defered.resolve(response);
             
@@ -82,7 +91,7 @@ var broadcastingServices = angular.module("BroadcastingService", [])
         var getBroadcastForId = function(id){
         	$http({
 	          	method: 'GET',
-	          	url: 'http://localhost/www/broadcasting/getBroadcast.php?id=' + id
+	          	url: url + '/broadcast/' + id
 	        }).then(function successCallback(response) {
 	        	responseRequest = response
 	        	name = response.data.streaming_name
@@ -116,7 +125,7 @@ var broadcastingServices = angular.module("BroadcastingService", [])
         var promise = defered.promise;
     	http({
           method: 'GET',
-          url: 'http://localhost/www/broadcasting/getStatus.php?id=' + id
+          url: url + '/broadcast/status' + id
         }).then(function successCallback(response) {
             defered.resolve(response);
           }, function errorCallback(response) {
@@ -132,5 +141,58 @@ var broadcastingServices = angular.module("BroadcastingService", [])
           method: 'GET',
           url: 'http://localhost:5001/streaming/stop'
         })
+    }
+
+    this.getConfigurationFfmpeg = function(){
+        var defered = $q.defer();
+        var promise = defered.promise;
+
+        $http({
+          method: 'GET',
+          url: url + '/configuration/ffmpeg'
+        }).then(function successCallback(response) {
+            console.log("cargo datos de configuraciones ffmpeg" + response.data)
+            defered.resolve(response);
+
+        }, function errorCallback(response) {
+           console.log("fallo al obtener configuraciones ffmpeg: ")
+           defered.reject(response);
+        }); 
+
+        return promise;
+    }
+
+    this.addConfigurationFfmpeg = function(description, configuration){
+        var defered = $q.defer();
+        var promise = defered.promise;
+
+        var data = { "description": description, "configuration": configuration }
+
+        var conAjax = $http.post("addConfigurationFfmpeg.php", data);
+
+        conAjax.success(function(response){
+              console.log("Agregado de configuracion:")
+              console.log(response)
+              defered.resolve(response);
+        });
+
+        return promise;
+    }
+
+    this.updateConfigurationFfmpeg = function(condition, json){
+        var defered = $q.defer();
+        var promise = defered.promise;
+
+        var data = { "condition": condition, "json": json }
+
+        var conAjax = $http.put( url + "/configuration/ffmpeg/update", data);
+
+        conAjax.success(function(response){
+              console.log("Actualizacion de configuracion:")
+              console.log(response)
+              defered.resolve(response);
+        });
+
+        return promise;
     }
 }); 
