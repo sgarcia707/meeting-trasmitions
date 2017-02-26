@@ -1,6 +1,6 @@
 <?php
-error_reporting(E_ALL); 
-ini_set("display_errors", 1); 
+//error_reporting(E_ALL); 
+//ini_set("display_errors", 1); 
 
 $GLOBALS['url'] = __DIR__;
 
@@ -65,6 +65,19 @@ $app->put('/configuration/ffmpeg/update', function ($request, $response) {
     return $response->withJson($return, 201);
 });
 
+$app->post('/configuration/ffmpeg/add', function ($request, $response) {
+    $data = json_decode($request->getBody());
+
+    $brodcasting = new Brodcasting();
+
+    $condition = $data->condition;
+    $json = $data->json;
+
+    $return = $brodcasting->addConfigurationFfmpeg($data->description, $data->configuration);
+
+    return $response->withJson($return, 201);
+});
+
 $app->get('/list/broadcasting', function ($request, $response) {
     $brodcasting = new Brodcasting();
     $data = $brodcasting->listBroadcast();
@@ -75,7 +88,7 @@ $app->post('/streaming/created', function ($request, $response) {
     $data = json_decode($request->getBody());
 
     $brodcasting = new Brodcasting();
-    $return = $brodcasting->createBrodcasting($data->title, $data->init_timestamp, $data->finish_timestamp);
+    $return = $brodcasting->createBrodcasting($data->title, $data->init_time, $data->finish_time);
 
     return $response->withJson($return, 201);
 });
@@ -89,19 +102,21 @@ $app->get('/streaming/change/status', function ($request, $response) {
     return $response->withJson($return, 200);
 });
 
-$app->get('/broadcast/{id}', function ($request, $response) {
-    $id = $request->get('id');
-
+$app->get('/broadcast/get/{id}', function ($request, $response) {
+    $id = $request->getAttribute('id');
     $brodcasting = new Brodcasting();
     $return = $brodcasting->getBroadcast($id);
 
     return $response->withJson($return, 200);
 });
 
-$app->get('/broadcast/status', function ($request, $response) {
-    $id = $request->get('id');
+$app->get('/broadcast/status/{id}', function ($request, $response) {
+    $id = $request->getAttribute('id');
     $brodcasting = new Brodcasting();
     $return = $brodcasting->getStratus($id);
+    //return $response->withJson($return, 200);
+
+    //$response->getBody()->write($id);
 
     return $response->withJson($return, 200);
 });

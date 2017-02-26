@@ -50,7 +50,6 @@ class Brodcasting {
 
 	    if ($this->client->getAccessToken()) {
 
-
 		    $youtube = new Google_Service_YouTube($this->client);
 
 		    try {
@@ -115,15 +114,11 @@ class Brodcasting {
 
 
 		    } catch (Google_Service_Exception $e) {
-		      $gServiceError = array("message"=> $e.getMessage(), "code"=>"500");
-		        header('Content-Type: application/json');
-		        http_response_code(500);
-		        echo json_encode($gServiceError);
+		      	$gServiceError = array("message"=> $e.getMessage(), "code"=>"500");
+		       	return $gServiceError;
 		    } catch (Google_Exception $e) {
 		        $eServiceError = array("message"=> $e.getMessage(), "code"=>"500");
-		        header('Content-Type: application/json');
-		        http_response_code(500);
-		        echo json_encode($eServiceError);
+		        return $eServiceError;
 		    }
 
 		    $_SESSION['token'] = $this->client->getAccessToken();
@@ -250,33 +245,31 @@ class Brodcasting {
 	 	if ($this->client->getAccessToken()) {
 		  try {
 
+		  	
 		  	$streamsResponse = $youtube->liveStreams->listLiveStreams('status', array('id' => $id ))[0];
 
 		  	$streaming = array('id_stream' =>$id , "status"=> $streamsResponse['status']['healthStatus']['status']);
+
+		  	//var_dump($streamsResponse);
 
 		    return $streaming;
 
 		  }catch (Google_Service_Exception $e) {
 	    	$gServiceError = array("message"=> $e->getErrors()[0]["message"], "code"=>"500");
-	        return(json_encode($gServiceError));
+	        return $gServiceError;
 		  } catch (Google_Exception $e) {
 	    	$gServiceError = array("message"=> "Error: get transactions error", "code"=>"500");
-	        return(json_encode($gServiceError));
+	        return $gServiceError;
 		  }
 
 	   } else {
 			$exceptionError = array("message"=> "Token not fund: " . $this->client->createAuthUrl(), "code"=>"500");
-		    return json_encode($exceptionError);
+		    return $exceptionError;
 		}
 	}
 
-	function getConfigurationFfmpeg(){
+	function getConfigurationFfmpeg($id){
 		$youtube = new Google_Service_YouTube($this->client);
-
-   	 	if(isset($_GET['id'])){
-			$id = $_GET['id'];
-	 	}
-
 	 	
 	 	if ($this->client->getAccessToken()) {
 		  try {
@@ -293,10 +286,10 @@ class Brodcasting {
 
 		  }catch (Google_Service_Exception $e) {
 	    	$gServiceError = array("message"=> $e->getErrors()[0]["message"], "code"=>"500");
-	        return(json_encode($gServiceError));
+	        return $gServiceError;
 		  } catch (Google_Exception $e) {
 	    	$gServiceError = array("message"=> "Error: get transactions error", "code"=>"500");
-	        return(json_encode($gServiceError));
+	        return $gServiceError;
 		  }
 
    		} else {
