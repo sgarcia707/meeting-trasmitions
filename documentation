@@ -33,3 +33,17 @@ streaming.streaming.remove(description:"a")
 composer require slim/slim "^3.0"
 
 sudo a2enmod rewrite && sudo service apache2 restart
+
+db.counters.insert({_id:"tokensid",sequence_value:0})
+
+db.createCollection( "tokens",
+   { validator: { $or:
+      [
+         { description: { $type: "string" } },
+         { token: { $type: "string" } },
+      ]
+   }
+} )
+
+
+db.tokens.insert( { "_id":getNextSequenceValue("streamingid"), description: "Youtube Services", token: "" } )

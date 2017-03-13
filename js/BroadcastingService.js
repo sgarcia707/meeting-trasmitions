@@ -15,7 +15,8 @@ var broadcastingServices = angular.module("BroadcastingService", [])
           url: url + '/list/broadcasting'
         }).then(function successCallback(response) {
             console.log("cargo datos de broadcasting existentes")
-			defered.resolve(response);
+            console.log(response);
+			       defered.resolve(response);
 
           }, function errorCallback(response) {
             console.log("fallo al obtener broadcasting: ")
@@ -29,40 +30,43 @@ var broadcastingServices = angular.module("BroadcastingService", [])
 
     this.created = function(title, init_time, finish_time){
     	console.log("name: " + title + " init: " + init_time + " finish: " + finish_time)
-    	var defered = $q.defer();
-        var promise = defered.promise;
-        var name = ""
-        var responseRequest = ""
+  	  var defered = $q.defer();
+      var promise = defered.promise;
+      var name = ""
+      var responseRequest = ""
 
- 		var createdBroadcast = function(title, init_time, finish_time){
+ 		  var createdBroadcast = function(title, init_time, finish_time){
 			$http({
 	          method: 'POST',
 	          url: url + '/streaming/created',
             data: { "title": title, "init_time": init_time, "finish_time": finish_time }
 	        }).then(function successCallback(response) {
+            console.log("broadcasting creado exitosamente")
+            console.log(response)
 	        	responseRequest = response
 	        	name = response.data.streaming_name
 	            defered.resolve(response);
 	          }, function errorCallback(response) {
+              console.log("broadcasting no pudo ser creado")
               console.log(response)
 	            defered.reject(response);
 	        });
- 		}
+ 		  }
 
-        var callFFMPEG = function(){
-            if(!['good', 'ok', 'bad'].includes(responseRequest.status)){
-                 $http({
-                  method: 'GET',
-                  url: url + 'http://localhost:5000/streaming/' + name
-                })
-            } 
-            return responseRequest
-        }
-		var promiseTotal= defered.promise.then(callFFMPEG);
+      var callFFMPEG = function(){
+         if(!['good', 'ok', 'bad'].includes(responseRequest.status)){
+              $http({
+               method: 'GET',
+               url: url + 'http://localhost:5000/streaming/' + name
+             })
+         } 
+         return responseRequest
+      }
+		  var promiseTotal= defered.promise.then(callFFMPEG);
  
-      	createdBroadcast(title, init_time, finish_time);
+      createdBroadcast(title, init_time, finish_time);
 
-        return promiseTotal
+      return promiseTotal
     }
 
     this.changeStatus = function(idStream, status){

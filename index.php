@@ -48,7 +48,7 @@ $app->get('/', function ($request, $response) {
 
 $app->get('/configuration/ffmpeg', function ($request, $response) {
     $brodcasting = new Brodcasting();
-    $data = $brodcasting->getConfigurationFfmpeg();
+    $data = $brodcasting->getConfigurationFfmpeg(1);
     return $response->withJson($data, 200);
 });
 
@@ -114,9 +114,6 @@ $app->get('/broadcast/status/{id}', function ($request, $response) {
     $id = $request->getAttribute('id');
     $brodcasting = new Brodcasting();
     $return = $brodcasting->getStratus($id);
-    //return $response->withJson($return, 200);
-
-    //$response->getBody()->write($id);
 
     return $response->withJson($return, 200);
 });

@@ -6,9 +6,10 @@ include_once "config/security.php";
 
 $client = init();
 
-//var_dump($client)
+
+//var_dump($client);
 if(!$client->getAccessToken()){
-    //var_dump($client->getAccessToken());
+    var_dump($client->getAccessToken());
     header('Location: '.$client->createAuthUrl());
 }
 ?>

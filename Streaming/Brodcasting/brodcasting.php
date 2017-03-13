@@ -7,6 +7,7 @@ class Brodcasting {
 	private $client;
 
     function __construct() {
+
 		$this->client = new Google_Client();
 
         if (!headers_sent()) {
@@ -22,31 +23,57 @@ class Brodcasting {
 	    $this->client->setAuthConfig($oauth_credentials);
 	    $this->client->setRedirectUri($redirect_uri);
 	    $this->client->addScope("https://www.googleapis.com/auth/youtube");
+	    $this->client->setAccessType("offline");
 
-	    if (isset($_REQUEST['logout'])) {
-	        unset($_SESSION['multi-api-token']);
+		if (isset($_GET['code'])) {
+
+		    $token = $this->client->fetchAccessTokenWithAuthCode($_GET['code']);
+		    $this->client->setAccessToken($token);
+
+		    // store in the session also
+		    //$_SESSION['multi-api-token'] = $token;
+		    $mng = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+	  		$bulk = new MongoDB\Driver\BulkWrite();
+			$bulk->update(['_id'=>1], ['token'=>$token]);
+			$mng->executeBulkWrite('streaming.tokens', $bulk);
+
+			//var_dump($token);
+
+		    // redirect back to the example
+		    //header('Location: ' . filter_var($redirect_uri, FILTER_SANITIZE_URL));
+		}
+
+		$mng = new MongoDB\Driver\Manager("mongodb://localhost:27017");
+	    $query = new MongoDB\Driver\Query([]); 
+	     
+	    $rows = $mng->executeQuery("streaming.tokens", $query);
+	    
+	    //var_dump($rows);
+	    $t = "";
+	    foreach ($rows as $row) {
+	    	//var_dump($row);
+	    	$t = $row->token->access_token;
 	    }
 
-	    if (isset($_GET['code'])) {
-	        $token = $this->client->fetchAccessTokenWithAuthCode($_GET['code']);
-	        $this->client->setAccessToken($token);
-	        $_SESSION['multi-api-token'] = $token;
-	        header('Location: ' . filter_var($redirect_uri, FILTER_SANITIZE_URL));
-	    }
-
-	    if (!empty($_SESSION['multi-api-token'])) {
-	        $this->client->setAccessToken($_SESSION['multi-api-token']);
-	        if ($this->client->isAccessTokenExpired()) {
-	            unset($_SESSION['multi-api-token']);
-	        }
-	    } else {
-	        $authUrl = $this->client->createAuthUrl();
-	    }
+		//var_dump($t);
+		if (!empty($t)) {
+		    $this->client->setAccessToken($t);
+		    if ($this->client->isAccessTokenExpired()) {
+		    	$this->client->refreshToken($t);
+		    }
+		} else {
+			//var_dump($tokens);
+		    $authUrl = $this->client->createAuthUrl();
+		    header('Location: ' . filter_var($authUrl, FILTER_SANITIZE_URL));
+		    //var_dump($authUrl);
+		}
    }
 
    static function says() {echo 'ruff';} 
 
    function createBrodcasting($title, $init_timestamp, $finish_timestamp){
+
+   		//var_dump($this->client->getAccessToken());
 
 	    if ($this->client->getAccessToken()) {
 
@@ -121,14 +148,12 @@ class Brodcasting {
 		        return $eServiceError;
 		    }
 
-		    $_SESSION['token'] = $this->client->getAccessToken();
+		    //$_SESSION['token'] = $this->client->getAccessToken();
 
 		    return $array;
 		} else {
 		    $exceptionError = array("message"=> "Token not fund: " . $this->client->createAuthUrl(), "code"=>"500");
-		    header('Content-Type: application/json');
-		    http_response_code(500);
-		    return json_encode($exceptionError);
+		    return $exceptionError;
 		}
    }
 
@@ -187,16 +212,16 @@ class Brodcasting {
 
 		  } catch (Google_Service_Exception $e) {
 	    	$gServiceError = array("message"=> $e->getErrors()[0]["message"], "code"=>"500");
-	        return(json_encode($gServiceError));
+	        return $gServiceError;
 		  } catch (Google_Exception $e) {
 	    	$gServiceError = array("message"=> "Error: get transactions error", "code"=>"500");
-	        return(json_encode($gServiceError));
+	        return $gServiceError;
 		  }
 
-		  $_SESSION['token'] = $this->client->getAccessToken();
+		  //$_SESSION['token'] = $this->client->getAccessToken();
 		} else {
 			$exceptionError = array("message"=> "Token not fund: " . $this->client->createAuthUrl(), "code"=>"500");
-		    return json_encode($exceptionError);
+		    return $exceptionError;
 		}
    }
 
